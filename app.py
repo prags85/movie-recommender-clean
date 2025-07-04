@@ -1,17 +1,18 @@
 import streamlit as st
 import pickle
 import os
-import gdown  # New import
+import requests
 
-# --- Download from Google Drive using gdown ---
+# --- Download similarity.pkl from Dropbox ---
 def download_similarity_file():
-    if not os.path.exists("similarity.pkl"):
-        file_id = "1tNuObdTqK5-EdtdkN-0e2IiuZ3TTPNdv"
-        url = f"https://drive.google.com/uc?id={file_id}"
-        gdown.download(url, "similarity.pkl", quiet=False)
+    url = "https://www.dropbox.com/scl/fi/bgivig39srrubbyn2w3ma/similarity.pkl?rlkey=xeww2dhab6fhz4z8qndqqoo5m&st=zx2mqfql&dl=1"
+    r = requests.get(url)
+    with open("similarity.pkl", "wb") as f:
+        f.write(r.content)
 
-# --- Call download before loading ---
-download_similarity_file()
+# --- Only download if file not present ---
+if not os.path.exists("similarity.pkl"):
+    download_similarity_file()
 
 # --- Load data ---
 movies_df = pickle.load(open('movies.pkl', 'rb'))
