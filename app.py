@@ -1,24 +1,22 @@
 import streamlit as st
 import pickle
 import os
-import requests
+import gdown
 
-# --- Download similarity.pkl from Dropbox ---
+# --- Download similarity.pkl from Google Drive if not present ---
 def download_similarity_file():
-    url = "https://www.dropbox.com/s/bgivig39srrubbyn2w3ma/similarity.pkl?dl=1"
-    r = requests.get(url)
-    with open("similarity.pkl", "wb") as f:
-        f.write(r.content)
+    file_id = "1tNuObdTqK5-EdtdkN-0e2IiuZ3TTPNdv"
+    url = f"https://drive.google.com/uc?id={file_id}"
+    gdown.download(url, "similarity.pkl", quiet=False)
 
-# --- Only download if not already present ---
 if not os.path.exists("similarity.pkl"):
     download_similarity_file()
 
-# --- Load data ---
+# --- Load local movies.pkl ---
 movies_df = pickle.load(open('movies.pkl', 'rb'))
 similarity = pickle.load(open('similarity.pkl', 'rb'))
 
-# --- Recommendation logic ---
+# --- Recommendation function ---
 def recommend(movie):
     movie_index = movies_df[movies_df['title'] == movie].index[0]
     distances = similarity[movie_index]
