@@ -1,39 +1,17 @@
 import streamlit as st
 import pickle
 import os
-import requests
+import gdown  # New import
 
-# --- Utility to download from Google Drive ---
-def download_file_from_google_drive(id, destination):
-    URL = "https://docs.google.com/uc?export=download"
-    session = requests.Session()
+# --- Download from Google Drive using gdown ---
+def download_similarity_file():
+    if not os.path.exists("similarity.pkl"):
+        file_id = "1tNuObdTqK5-EdtdkN-0e2IiuZ3TTPNdv"
+        url = f"https://drive.google.com/uc?id={file_id}"
+        gdown.download(url, "similarity.pkl", quiet=False)
 
-    response = session.get(URL, params={'id': id}, stream=True)
-    token = get_confirm_token(response)
-
-    if token:
-        params = {'id': id, 'confirm': token}
-        response = session.get(URL, params=params, stream=True)
-
-    save_response_content(response, destination)
-
-def get_confirm_token(response):
-    for key, value in response.cookies.items():
-        if key.startswith('download_warning'):
-            return value
-    return None
-
-def save_response_content(response, destination):
-    CHUNK_SIZE = 32768
-    with open(destination, 'wb') as f:
-        for chunk in response.iter_content(CHUNK_SIZE):
-            if chunk:
-                f.write(chunk)
-
-# --- Download similarity.pkl if missing ---
-if not os.path.exists("similarity.pkl"):
-    file_id = "1tNuObdTqK5-EdtdkN-0e2IiuZ3TTPNdv"  # Your Google Drive file ID
-    download_file_from_google_drive(file_id, "similarity.pkl")
+# --- Call download before loading ---
+download_similarity_file()
 
 # --- Load data ---
 movies_df = pickle.load(open('movies.pkl', 'rb'))
@@ -44,8 +22,7 @@ def recommend(movie):
     movie_index = movies_df[movies_df['title'] == movie].index[0]
     distances = similarity[movie_index]
     recommended_indices = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
-    recommended_movies = [movies_df.iloc[i[0]].title for i in recommended_indices]
-    return recommended_movies
+    return [movies_df.iloc[i[0]].title for i in recommended_indices]
 
 # --- Streamlit UI ---
 st.title('🎬 Movie Recommender System')
