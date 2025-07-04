@@ -5,12 +5,12 @@ import requests
 
 # --- Download similarity.pkl from Dropbox ---
 def download_similarity_file():
-    url = "https://www.dropbox.com/scl/fi/bgivig39srrubbyn2w3ma/similarity.pkl?rlkey=xeww2dhab6fhz4z8qndqqoo5m&st=zx2mqfql&dl=1"
+    url = "https://www.dropbox.com/s/bgivig39srrubbyn2w3ma/similarity.pkl?dl=1"
     r = requests.get(url)
     with open("similarity.pkl", "wb") as f:
         f.write(r.content)
 
-# --- Only download if file not present ---
+# --- Only download if not already present ---
 if not os.path.exists("similarity.pkl"):
     download_similarity_file()
 
@@ -18,12 +18,12 @@ if not os.path.exists("similarity.pkl"):
 movies_df = pickle.load(open('movies.pkl', 'rb'))
 similarity = pickle.load(open('similarity.pkl', 'rb'))
 
-# --- Recommendation function ---
+# --- Recommendation logic ---
 def recommend(movie):
     movie_index = movies_df[movies_df['title'] == movie].index[0]
     distances = similarity[movie_index]
-    recommended_indices = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
-    return [movies_df.iloc[i[0]].title for i in recommended_indices]
+    top_indices = sorted(list(enumerate(distances)), reverse=True, key=lambda x: x[1])[1:6]
+    return [movies_df.iloc[i[0]].title for i in top_indices]
 
 # --- Streamlit UI ---
 st.title('🎬 Movie Recommender System')
@@ -35,6 +35,5 @@ selected_movie_name = st.selectbox(
 
 if st.button('Recommend'):
     st.subheader("Top 5 Recommendations:")
-    recommendations = recommend(selected_movie_name)
-    for movie in recommendations:
+    for movie in recommend(selected_movie_name):
         st.write("✅", movie)
